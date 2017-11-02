@@ -2,7 +2,7 @@
 #include <string.h>
 #include "datadef.h"
 
-/* Modified slightly by D. Orchard (2010) from the classic code from: 
+/* Modified slightly by D. Orchard (2010) from the classic code from:
 
     Michael Griebel, Thomas Dornseifer, Tilman Neunhoeffer,
     Numerical Simulation in Fluid Dynamics,
@@ -17,7 +17,7 @@
  * edges of the matrix.
  */
 void apply_boundary_conditions(double **u, double **v, char **flag,
-    int imax, int jmax, double ui, double vi)
+    int imax, int jmax, double ui, double vi, double **p)
 {
     int i, j;
 
@@ -50,17 +50,17 @@ void apply_boundary_conditions(double **u, double **v, char **flag,
         for (j=1; j<=jmax; j++) {
             if (flag[i][j] & B_NSEW) {
                 switch (flag[i][j]) {
-                    case B_N: 
+                    case B_N:
                         u[i][j]   = -u[i][j+1];
                         break;
-                    case B_E: 
+                    case B_E:
                         u[i][j]   = 0.0;
                         break;
                     case B_NE:
                         u[i][j]   = 0.0;
                         break;
                     case B_SE:
-                        u[i][j]   = 0.0;                      
+                        u[i][j]   = 0.0;
                         break;
                     case B_NW:
                         u[i][j]   = -u[i][j+1];
@@ -74,15 +74,15 @@ void apply_boundary_conditions(double **u, double **v, char **flag,
                 }
             }
 	}
-    } 
+    }
     for (i=0; i<=(imax-1); i++) {
         for (j=1; j<=jmax; j++) {
             if (flag[i+1][j] & B_NSEW) {
                 switch (flag[i+1][j]) {
-                    case B_N: 
+                    case B_N:
                         u[i][j] = -u[i][j+1];
                         break;
-                    case B_W: 
+                    case B_W:
                         u[i][j] = 0.0;
                         break;
                     case B_NE:
@@ -103,17 +103,17 @@ void apply_boundary_conditions(double **u, double **v, char **flag,
                 }
             }
 	}
-    } 
+    }
 
 
     for (i=1; i<=imax; i++) {
         for (j=1; j<=jmax; j++) {
             if (flag[i][j] & B_NSEW) {
                 switch (flag[i][j]) {
-                    case B_N: 
+                    case B_N:
                         v[i][j]   = 0.0;
                         break;
-                    case B_E: 
+                    case B_E:
                         v[i][j]   = -v[i+1][j];
                         break;
                     case B_NE:
@@ -125,7 +125,7 @@ void apply_boundary_conditions(double **u, double **v, char **flag,
                     case B_NW:
                         v[i][j]   = 0.0;
                         break;
-                    case B_W: 
+                    case B_W:
                         v[i][j]   = -v[i-1][j];
                         break;
                     case B_SW:
@@ -134,13 +134,13 @@ void apply_boundary_conditions(double **u, double **v, char **flag,
                 }
             }
 	 }
-      } 
+      }
 
     for (i=1; i<=imax; i++) {
       for (j=0; j<=(jmax-1); j++) {
             if (flag[i][j+1] & B_NSEW) {
                 switch (flag[i][j+1]) {
-                    case B_E: 
+                    case B_E:
                         v[i][j] = -v[i+1][j];
                         break;
                     case B_S:
@@ -155,7 +155,7 @@ void apply_boundary_conditions(double **u, double **v, char **flag,
                     case B_SW:
                         v[i][j] = 0.0;
 			break;
-                    case B_W: 
+                    case B_W:
                         v[i][j] = -v[i-1][j];
                         break;
                     case B_NW:
@@ -164,18 +164,18 @@ void apply_boundary_conditions(double **u, double **v, char **flag,
                 }
             }
 	}
-     } 
+     }
 
     /* for (i=1; i<=imax; i++) {
         for (j=1; j<=jmax; j++) {
             if (flag[i][j] & B_NSEW) {
                 switch (flag[i][j]) {
-                    case B_N: 
+                    case B_N:
                         v[i][j]   = 0.0;
                         u[i][j]   = -u[i][j+1];
                         u[i-1][j] = -u[i-1][j+1];
                         break;
-                    case B_E: 
+                    case B_E:
                         u[i][j]   = 0.0;
                         v[i][j]   = -v[i+1][j];
                         v[i][j-1] = -v[i+1][j-1];
@@ -185,7 +185,7 @@ void apply_boundary_conditions(double **u, double **v, char **flag,
                         u[i][j]   = -u[i][j-1];
                         u[i-1][j] = -u[i-1][j-1];
                         break;
-                    case B_W: 
+                    case B_W:
                         u[i-1][j] = 0.0;
                         v[i][j]   = -v[i-1][j];
                         v[i][j-1] = -v[i-1][j-1];
@@ -226,10 +226,11 @@ void apply_boundary_conditions(double **u, double **v, char **flag,
     for (j=1;j<=jmax;j++) {
         u[0][j] = ui;
         v[0][j] = 2*vi-v[1][j];
+        v[0][j] = 1000.0;
     }
 }
 
-/* 
+/*
 
 for(i=0;i<=(imax+1);i++){
   for(j=0;j<=(jmax+1);j++){

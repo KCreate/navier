@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include "datadef.h"
 
-/* Modified slightly by D. Orchard (2010) from the classic code from: 
+/* Modified slightly by D. Orchard (2010) from the classic code from:
 
     Michael Griebel, Thomas Dornseifer, Tilman Neunhoeffer,
     Numerical Simulation in Fluid Dynamics,
@@ -22,20 +22,47 @@ void init_flag(char **flag, int imax, int jmax, double delx, double dely,
     int *ibound)
 {
     int i, j;
-    double mx, my, x, y, rad1;
 
-    /* Mask of a circular obstacle */
-    mx = 20.0/41.0*jmax*dely;
-    my = mx;
-    rad1 = 5.0/41.0*jmax*dely;
+    // Constants for nozzle design
+    double nozzle_start                 = 0.1 * imax;
+    double nozzle_middle                = 0.2 * imax;
+    double nozzle_end                   = 0.4 * imax;
+    double nozzle_start_size            = 0.4 * jmax;
+    double nozzle_middle_size           = 0.1 * jmax;
+    double nozzle_end_size              = 0.5 * jmax;
+    double nozzle_converging_length     = nozzle_middle - nozzle_start;
+    double nozzle_diverging_length      = nozzle_end - nozzle_middle;
+
+    // Diameter calculation of nozzle
+    double diameter, diameter_start_ratio;
+
     for (i=1;i<=imax;i++) {
-        for (j=1;j<=jmax;j++) {
-            x = (i-0.5)*delx - mx;
-            y = (j-0.5)*dely - my;
-            flag[i][j] = (x*x + y*y <= rad1*rad1)?C_B:C_F;
+      for (j=1;j<=jmax;j++) {
+        if (i >= nozzle_start && i <= nozzle_end) {
+          if (i < nozzle_middle) {
+            diameter_start_ratio = (i - nozzle_start) / nozzle_converging_length;
+            diameter = (nozzle_middle_size * diameter_start_ratio) +
+                       (nozzle_start_size * (1 - diameter_start_ratio));
+          } else {
+            diameter_start_ratio = (i - nozzle_middle) / nozzle_diverging_length;
+            diameter = (nozzle_end_size * diameter_start_ratio) +
+                       (nozzle_middle_size * (1 - diameter_start_ratio));
+          }
+
+          // Check if value is outside the diameter
+          if (j < (jmax / 2) - diameter / 2 || j > (jmax / 2) + diameter / 2) {
+            flag[i][j] = C_B;
+          } else {
+            flag[i][j] = C_F;
+          }
+
+          continue;
         }
+
+        flag[i][j] = C_F;
+      }
     }
-    
+
     /* Mark the north & south boundary cells */
     for (i=0; i<=imax+1; i++) {
         flag[i][0]      = C_B;

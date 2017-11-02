@@ -10,7 +10,7 @@
 #include "init.h"
 #include "simulation.h"
 
-/* Modified slightly by D. Orchard (2010) from the classic code from: 
+/* Modified slightly by D. Orchard (2010) from the classic code from:
 
     Michael Griebel, Thomas Dornseifer, Tilman Neunhoeffer,
     Numerical Simulation in Fluid Dynamics,
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     int output = 0;
     int output_frequency = 0;
 
-    double t_end = 40; //2.1       /* Simulation runtime */
+    double t_end = 0.005; //2.1       /* Simulation runtime */
     double del_t = 0.003;      /* Duration of each timestep */
     double tau = 0.5;          /* Safety factor for timestep control */
 
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
                                  discretisation */
 
     double Re = 150.0;         /* Reynolds number */
-    double ui = 1.0;           /* Initial X velocity */
+    double ui = 500.0;           /* Initial X velocity */
     double vi = 0.0;           /* Initial Y velocity */
 
     double t, delx, dely;
@@ -73,8 +73,8 @@ int main(int argc, char *argv[])
     f    = alloc_doublematrix(imax+2, jmax+2);
     g    = alloc_doublematrix(imax+2, jmax+2);
     p    = alloc_doublematrix(imax+2, jmax+2);
-    rhs  = alloc_doublematrix(imax+2, jmax+2); 
-    flag = alloc_charmatrix(imax+2, jmax+2);                    
+    rhs  = alloc_doublematrix(imax+2, jmax+2);
+    flag = alloc_charmatrix(imax+2, jmax+2);
 
     if (!u || !v || !f || !g || !p || !rhs || !flag) {
         fprintf(stderr, "Couldn't allocate memory for matrices.\n");
@@ -89,15 +89,15 @@ int main(int argc, char *argv[])
          for (j=0;j<=jmax+1;j++) {
    	     checker += (i*jmax)+ j + 1;
 	     checker1 += (i*jmax) + j + 1.0;
-             u[i][j] = ui;
-             v[i][j] = vi;
+             u[i][j] = 0.0;
+             v[i][j] = 0.0;
              p[i][j] = 0.0;
          }
      }
 
     init_flag(flag, imax, jmax, delx, dely, &ibound);
-    apply_boundary_conditions(u, v, flag, imax, jmax, ui, vi);
-    
+    apply_boundary_conditions(u, v, flag, imax, jmax, ui, vi, p);
+
     // Main loop
 
     for (t = 0.0; t < t_end; t += del_t, iters++) {
@@ -120,10 +120,10 @@ int main(int argc, char *argv[])
          printf("%d t:%g, del_t:%g, SOR iters:%3d, res:%e, bcells:%d\n",
                 iters, t+del_t, del_t, itersor, res, ibound);
 
-	
+
         update_velocity(u, v, f, g, p, flag, imax, jmax, del_t, delx, dely);
 
-        apply_boundary_conditions(u, v, flag, imax, jmax, ui, vi);
+        apply_boundary_conditions(u, v, flag, imax, jmax, ui, vi, p);
 
 	if (output && (iters % output_frequency == 0)) {
 	  write_ppm(u, v, p, flag, imax, jmax, xlength, ylength, outname,
